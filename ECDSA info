@@ -1,0 +1,91 @@
+Input the following lines of text, one by one, to create your ECDSA folder directories:
+
+mkdir -p $HOME/keep-ecdsa/config
+mkdir -p $HOME/keep-ecdsa/keystore
+mkdir -p $HOME/keep-ecdsa/persistence
+
+
+
+
+
+Input the following line to enter a VIM editor. You will paste the contents of your keep wallet keystore file in here. 
+After you have done that, safely save and exit the VIM editor.
+
+nano $HOME/keep-ecdsa/keystore/keep_wallet.json
+
+
+
+
+Input the following lines of text to create environmental variables to use later for your keep random beacon and ecdsa node. 
+Fill in the corresponding information in between the quotation marks, do not remove the quotation marks.
+Take note to use the single quotations for the keep_client_ethereum_password.
+If you have already created these exact variables for another node, skip this step. You can check these variables by typing in env | sort 
+
+export SERVER_IP=$(curl ifconfig.co)
+export INFURA_PROJECT_ID=”TU ID DE INFURA”
+export ETH_WALLET=”LA CLAVE PUBLICA DE TU METAMASK BILLETERA”
+export KEEP_CLIENT_ETHEREUM_PASSWORD=’LA CONTRASEÑA QUE ESCRIBISTE DEL PASO NUMERO 1'
+
+
+
+
+
+Input the following text block into your VPN node line by line to create your ECDSA config file:
+
+cat <<EOF >>$HOME/keep-ecdsa/config/config.toml
+
+[ethereum]
+
+URL = "wss://ropsten.infura.io/ws/v3/$INFURA_PROJECT_ID"
+
+URLRPC = "https://ropsten.infura.io/v3/$INFURA_PROJECT_ID"
+
+[ethereum.account]
+
+Address = "$ETH_WALLET"
+
+KeyFile = "/mnt/keep-ecdsa/keystore/keep_wallet.json"
+
+[ethereum.ContractAddresses]
+
+BondedECDSAKeepFactory = "0x9EcCf03dFBDa6A5E50d7aBA14e0c60c2F6c575E6"
+
+[SanctionedApplications]
+Addresses = [
+"0xc3f96306eDabACEa249D2D22Ec65697f38c6Da69",
+]
+
+[Storage]
+
+DataDir = "/mnt/keep-ecdsa/persistence"
+
+[LibP2P]
+
+Peers = [“/dns4/testnet.keep-client.hashd.dev/tcp/3920/ipfs/16Uiu2HAmJsBiNVFNxsJ27NSQEByv39B1M7AKx5FrAc1htqYhHGhU”,”/ip4/3.23.88.229/tcp/3919/ipfs/16Uiu2HAmEZpkf1Td8rSBMmgPoa66si2kJLb83Rd2eztJ6f5oLvhp”,”/dns4/ecdsa-2.test.keep.network/tcp/3919/ipfs/16Uiu2HAmNNuCp45z5bgB8KiTHv1vHTNAVbBgxxtTFGAndageo9Dp”,
+“/dns4/ecdsa-3.test.keep.network/tcp/3919/ipfs/16Uiu2HAm8KJX32kr3eYUhDuzwTucSfAfspnjnXNf9veVhB12t6Vf”,”/dns4/bootstrap-1.ecdsa.keep.test.boar.network/tcp/4001/ipfs/16Uiu2HAmPFXDaeGWtnzd8s39NsaQguoWtKi77834A6xwYqeicq6N”]
+
+Port = 3919
+
+AnnouncedAddresses = ["/ip4/$SERVER_IP/tcp/5678"]
+
+[TSS]
+
+PreParamsGenerationTimeout = "2m30s"
+
+EOF
+
+
+
+After you have entered the above and closed the file, enter the following block line by line to start your node.
+
+sudo docker run -d \
+--restart always \
+--entrypoint /usr/local/bin/keep-ecdsa \
+--volume $HOME/keep-ecdsa:/mnt/keep-ecdsa \
+--env KEEP_ETHEREUM_PASSWORD=$KEEP_CLIENT_ETHEREUM_PASSWORD \
+--env LOG_LEVEL=debug \
+--name ecdsa \
+-p 3920:3919 \
+keepnetwork/keep-ecdsa-client:v1.2.0-rc.4 \
+--config /mnt/keep-ecdsa/config/config.toml start
+
