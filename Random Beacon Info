@@ -1,0 +1,120 @@
+Input the following lines of text, one by one, to set up firewall rules:
+
+sudo ufw allow 22/tcp
+sudo ufw allow 3919/tcp
+yes | sudo ufw enable
+
+
+
+Input the following lines of text, one by one, to install docker:
+
+sudo apt-get update
+sudo apt-get remove docker docker-engine docker.io
+sudo apt install docker.io curl -y
+sudo systemctl start docker
+sudo systemctl enable docker
+
+
+Input the following line to check if docker is installed:
+
+root@keep-testnet:~# sudo docker --version
+
+
+Input the following line to install the latest keep-client:
+
+docker pull keepnetwork/keep-client:latest
+
+
+
+
+
+
+Input the following lines of text, one by one, to create your Random Beacon folder directories:
+
+mkdir -p $HOME/keep-client/config
+mkdir -p $HOME/keep-client/keystore
+mkdir -p $HOME/keep-client/persistence
+
+
+
+
+
+Input the following line to enter a VIM editor. You will paste the contents of your keep wallet keystore file in here. 
+After you have done that, safely save and exit the VIM editor.
+
+nano $HOME/keep-client/keystore/keep_wallet.json
+
+
+
+
+
+Input the following lines of text to create environmental variables to use later for your keep random beacon and ecdsa node. 
+Fill in the corresponding information in between the quotation marks, do not remove the quotation marks.
+Take note to use the single quotations for the keep_client_ethereum_password.
+If you have already created these exact variables for another node, skip this step. You can check these variables by typing in env | sort 
+
+export SERVER_IP=$(curl ifconfig.co)
+export INFURA_PROJECT_ID=”TU ID DE INFURA”
+export ETH_WALLET=”LA CLAVE PUBLICA DE TU METAMASK BILLETERA”
+export KEEP_CLIENT_ETHEREUM_PASSWORD=’LA CONTRASEÑA QUE ESCRIBISTE DEL PASO NUMERO 1'
+
+
+
+
+Input the following text block into your VPN node line by line to create your Random Beacon config file:
+
+cat <<EOF >>$HOME/keep-client/config/config.toml
+
+[ethereum]
+
+URL = “wss://ropsten.infura.io/ws/v3/$INFURA_PROJECT_ID”
+
+URLRPC = “https://ropsten.infura.io/v3/$INFURA_PROJECT_ID"
+
+[ethereum.account]
+
+Address = “$ETH_WALLET”
+
+KeyFile = “/mnt/keystore/keep_wallet.json”
+
+[ethereum.ContractAddresses]
+
+KeepRandomBeaconOperator = “0xC8337a94a50d16191513dEF4D1e61A6886BF410f”
+
+TokenStaking = “0x234d2182B29c6a64ce3ab6940037b5C8FdAB608e”
+
+KeepRandomBeaconService = “0x6c04499B595efdc28CdbEd3f9ed2E83d7dCCC717”
+
+[LibP2P]
+
+Peers = [“/dns4/bootstrap-1.core.keep.test.boar.network/tcp/3001/ipfs/16Uiu2HAkuTUKNh6HkfvWBEkftZbqZHPHi3Kak5ZUygAxvsdQ2UgG”,
+“/dns4/bootstrap-2.core.keep.test.boar.network/tcp/3001/ipfs/16Uiu2HAmQirGruZBvtbLHr5SDebsYGcq6Djw7ijF3gnkqsdQs3wK”,
+“/dns4/bootstrap-3.test.keep.network/tcp/3919/ipfs/16Uiu2HAm8KJX32kr3eYUhDuzwTucSfAfspnjnXNf9veVhB12t6Vf”,
+“/dns4/bootstrap-2.test.keep.network/tcp/3919/ipfs/16Uiu2HAmNNuCp45z5bgB8KiTHv1vHTNAVbBgxxtTFGAndageo9Dp”]
+
+Port = 3919
+
+AnnouncedAddresses = [“/ip4/$SERVER_IP/tcp/3919”]
+
+[Storage]
+
+DataDir = “/mnt/persistence”
+
+EOF
+
+
+
+
+
+After you have entered the above and closed the file, enter the following block line by line to start your node.
+
+sudo docker run -dit \
+— restart always \
+— volume $HOME/keep-client:/mnt \
+— env KEEP_ETHEREUM_PASSWORD=$KEEP_CLIENT_ETHEREUM_PASSWORD \
+— env LOG_LEVEL=debug \
+— name keep-client \
+-p 3919:3919 \
+novy4/keep-client:latest — config /mnt/config/config.toml start
+
+
