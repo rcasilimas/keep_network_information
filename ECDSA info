@@ -18,13 +18,12 @@ nano $HOME/keep-ecdsa/keystore/keep_wallet.json
 
 Input the following lines of text to create environmental variables to use later for your keep random beacon and ecdsa node. 
 Fill in the corresponding information in between the quotation marks, do not remove the quotation marks.
-Take note to use the single quotations for the keep_client_ethereum_password.
 If you have already created these exact variables for another node, skip this step. You can check these variables by typing in env | sort 
 
 export SERVER_IP=$(curl ifconfig.co)
-export INFURA_PROJECT_ID=”TU ID DE INFURA”
-export ETH_WALLET=”LA CLAVE PUBLICA DE TU METAMASK BILLETERA”
-export KEEP_CLIENT_ETHEREUM_PASSWORD=’LA CONTRASEÑA QUE ESCRIBISTE DEL PASO NUMERO 1'
+export INFURA_PROJECT_ID=”INFURA ID”
+export ETH_WALLET=”KEEP WALLET ADDRESS”
+export KEEP_CLIENT_ETHEREUM_PASSWORD="KEYSTORE WALLET PASSWORD FROM STEP 1"
 
 
 
